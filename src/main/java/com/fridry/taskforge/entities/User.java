@@ -1,4 +1,4 @@
-package com.fridry.taskforge.user;
+package com.fridry.taskforge.entities;
 
 import jakarta.persistence.*;
 
@@ -12,6 +12,8 @@ public class User {
     private Long id;
 
     private String name;
+
+    @Column(unique = true)
     private String email;
     private String password;
     @Temporal(TemporalType.TIMESTAMP)

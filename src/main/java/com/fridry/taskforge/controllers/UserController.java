@@ -1,6 +1,8 @@
-package com.fridry.taskforge.user;
+package com.fridry.taskforge.controllers;
 
 
+import com.fridry.taskforge.entities.User;
+import com.fridry.taskforge.repositories.UserRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
@@ -59,7 +61,7 @@ public class UserController {
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
         Optional<User> optionalUser = userRepository.findById(id);
 
-        if(optionalUser.isEmpty()) {
+        if (optionalUser.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
@@ -73,7 +75,7 @@ public class UserController {
     public ResponseEntity<User> partialUserUpdate(@PathVariable Long id, @RequestBody User userUpdates) {
         Optional<User> user = userRepository.findById(id);
 
-        if(user.isEmpty()) {
+        if (user.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
@@ -84,13 +86,11 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(newUser);
     }
 
-
-
     @DeleteMapping("/{id}")
-    private ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         Optional<User> user = userRepository.findById(id);
 
-        if(user.isEmpty()) {
+        if (user.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
