@@ -1,8 +1,11 @@
 package com.fridry.taskforge.controllers;
 
 
+import com.fridry.taskforge.converter.UserConverter;
+import com.fridry.taskforge.dtos.UserDTO;
 import com.fridry.taskforge.entities.User;
-import com.fridry.taskforge.repositories.UserRepository;
+import com.fridry.taskforge.services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
@@ -23,22 +26,21 @@ import java.util.Set;
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
-    private final UserRepository userRepository;
+    @Autowired
+    private UserService userService;
 
     @Autowired
-    public UserController(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    private UserConverter userConverter;
 
     @GetMapping
     public ResponseEntity<List<User>> findAllUsers(Pageable pageable) {
-        Page<User> users = userRepository.findAll(pageable);
+        Page<User> users = userService.findAllUsers(pageable);
         return ResponseEntity.status(HttpStatus.OK).body(users.getContent());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<User> findUserById(@PathVariable Long id) {
-        Optional<User> user = userRepository.findById(id);
+        Optional<User> user = userService.findUserById(id);
 
         return user.map(value -> ResponseEntity.status(HttpStatus.OK).body(value))
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -46,60 +48,64 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> createUser(@RequestBody User user) {
-        User newUser = userRepository.save(user);
+    public ResponseEntity<User> createUser(@Valid @RequestBody UserDTO userDTO) {
+        User newUser = userService.saveUser(userConverter.convertToEntity(userDTO));
 
         String resourceUrl = "/users/" + newUser.getId();
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .header("Location", resourceUrl)
-                .build();
+                .body(newUser);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
-        Optional<User> optionalUser = userRepository.findById(id);
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody UserDTO userDTO) {
+        Optional<User> optionalUser = userService.findUserById(id);
 
         if (optionalUser.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
+        User user = optionalUser.get();
         user.setId(id);
-        User newUser = userRepository.save(user);
+        user.setName(userDTO.getName());
+        user.setEmail(userDTO.getEmail());
+        user.setPassword(userDTO.getPassword());
 
-        return ResponseEntity.status(HttpStatus.OK).body(newUser);
+        User updatedUser = userService.saveUser(user);
+
+        return ResponseEntity.status(HttpStatus.OK).body(updatedUser);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<User> partialUserUpdate(@PathVariable Long id, @RequestBody User userUpdates) {
-        Optional<User> user = userRepository.findById(id);
+    public ResponseEntity<User> partialUpdateUser(@PathVariable Long id, @RequestBody User user) {
+        Optional<User> optionalUser = userService.findUserById(id);
 
-        if (user.isEmpty()) {
+        if (optionalUser.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        BeanUtils.copyProperties(userUpdates, user.get(), getNullPropertyNames(userUpdates));
+        BeanUtils.copyProperties(user, optionalUser.get(), getNullPropertyNames(user));
 
-        User newUser = userRepository.save(user.get());
+        User updatedUser = userService.saveUser(optionalUser.get());
 
-        return ResponseEntity.status(HttpStatus.OK).body(newUser);
+        return ResponseEntity.status(HttpStatus.OK).body(updatedUser);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        Optional<User> user = userRepository.findById(id);
+        Optional<User> user = userService.findUserById(id);
 
         if (user.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        userRepository.deleteById(id);
+        userService.deleteUser(id);
 
         return ResponseEntity.noContent().build();
     }
 
-    // Método para obter nomes de propriedades nulas
     private String[] getNullPropertyNames(User user) {
         final BeanWrapper src = new BeanWrapperImpl(user);
         PropertyDescriptor[] pds = src.getPropertyDescriptors();
