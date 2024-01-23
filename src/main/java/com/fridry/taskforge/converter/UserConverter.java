@@ -8,21 +8,21 @@ import org.springframework.stereotype.Component;
 public class UserConverter {
 
     public static UserDTO mapToDto(User user) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(user.getId());
-        userDTO.setName(user.getName());
-        userDTO.setEmail(user.getEmail());
-        userDTO.setPassword(user.getPassword());
+        UserDTO userDTO = new UserDTO(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getPassword());
 
         return userDTO;
     }
 
     public static User mapToEntity(UserDTO userDTO) {
         User user = new User();
-        user.setId(userDTO.getId());
-        user.setName(userDTO.getName());
-        user.setEmail(userDTO.getEmail());
-        user.setPassword(userDTO.getPassword());
+        user.setId(userDTO.id());
+        user.setName(userDTO.name());
+        user.setEmail(userDTO.email());
+        user.setPassword(userDTO.password());
 
         return user;
     }

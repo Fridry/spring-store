@@ -1,12 +1,9 @@
 package com.fridry.taskforge.dtos;
 
 
-import lombok.Data;
-
-@Data
-public class UserDTO {
-    private Long id;
-    private String name;
-    private String email;
-    private String password;
+public record UserDTO
+        (Long id,
+         String name,
+         String email,
+         String password) {
 }

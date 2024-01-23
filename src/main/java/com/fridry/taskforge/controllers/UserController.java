@@ -41,14 +41,16 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
-        UserDTO newUser = new UserDTO();
-        newUser.setName(userDTO.getName());
-        newUser.setEmail(userDTO.getEmail());
-        newUser.setPassword(userDTO.getPassword());
+        UserDTO newUser = new UserDTO(
+                userDTO.id(),
+                userDTO.name(),
+                userDTO.email(),
+                userDTO.password()
+        );
 
         UserDTO savedUser = userService.createUser(newUser);
 
-        String resourceUrl = "/users/" + savedUser.getId();
+        String resourceUrl = "/users/" + savedUser.id();
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
